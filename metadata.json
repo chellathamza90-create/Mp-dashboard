@@ -1,0 +1,8 @@
+{
+  "name": "Alstom Railway Supply Chain - Material Planning Control Tower",
+  "description": "Dashboard Global MP et tour de contrôle Material Planning dédiée à l'industrie ferroviaire Alstom (MSP, MDP, Produits Finis, OTIF, Waterfall Planning & Missing Parts).",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
