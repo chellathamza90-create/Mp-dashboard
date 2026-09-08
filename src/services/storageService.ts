@@ -5,6 +5,7 @@ import {
   MDPRecord,
   PFRecord,
   OTIFRecord,
+  StockRecord,
   DataQualityReport,
   SyncResult,
   AutoRefreshInterval
@@ -15,6 +16,7 @@ import {
   generateInitialMdp,
   generateInitialPf,
   generateInitialOtif,
+  generateInitialStock,
   getInitialQualityReport
 } from './initialData';
 
@@ -25,6 +27,7 @@ const STORAGE_KEYS = {
   MDP_RECORDS: 'mpt_mdp_records_v2',
   PF_RECORDS: 'mpt_pf_records_v2',
   OTIF_RECORDS: 'mpt_otif_records_v2',
+  STOCK_RECORDS: 'mpt_stock_records_v2',
   LAST_SYNC: 'mpt_last_sync_v2',
   SYNC_HISTORY: 'mpt_sync_history_v2',
   QUALITY_REPORT: 'mpt_quality_report_v2',
@@ -46,7 +49,7 @@ export class StorageService {
   }
 
   private ensureInitialized(): void {
-    if (!localStorage.getItem(STORAGE_KEYS.FOLDERS)) {
+    if (!localStorage.getItem(STORAGE_KEYS.FOLDERS) || !localStorage.getItem(STORAGE_KEYS.STOCK_RECORDS)) {
       this.resetToDefaults();
     }
   }
@@ -56,6 +59,7 @@ export class StorageService {
     const mdp = generateInitialMdp();
     const pf = generateInitialPf();
     const otif = generateInitialOtif();
+    const stock = generateInitialStock();
 
     const allFiles = [...msp.files, ...mdp.files, ...pf.files, ...otif.files];
     const totalLines = allFiles.reduce((acc, f) => acc + f.rowCount, 0) * 1500;
@@ -66,6 +70,7 @@ export class StorageService {
     localStorage.setItem(STORAGE_KEYS.MDP_RECORDS, JSON.stringify(mdp.records));
     localStorage.setItem(STORAGE_KEYS.PF_RECORDS, JSON.stringify(pf.records));
     localStorage.setItem(STORAGE_KEYS.OTIF_RECORDS, JSON.stringify(otif.records));
+    localStorage.setItem(STORAGE_KEYS.STOCK_RECORDS, JSON.stringify(stock));
     localStorage.setItem(STORAGE_KEYS.LAST_SYNC, '2026-09-06T22:30:00.000Z');
     localStorage.setItem(STORAGE_KEYS.AUTO_REFRESH, JSON.stringify({ enabled: true, interval: 'startup' as AutoRefreshInterval }));
     localStorage.setItem(STORAGE_KEYS.QUALITY_REPORT, JSON.stringify(getInitialQualityReport(allFiles.length, 125430)));
@@ -142,6 +147,20 @@ export class StorageService {
 
   public saveOTIFRecords(records: OTIFRecord[]): void {
     localStorage.setItem(STORAGE_KEYS.OTIF_RECORDS, JSON.stringify(records));
+  }
+
+  public getStockRecords(): StockRecord[] {
+    const raw = localStorage.getItem(STORAGE_KEYS.STOCK_RECORDS);
+    if (!raw) {
+      const initial = generateInitialStock();
+      this.saveStockRecords(initial);
+      return initial;
+    }
+    return JSON.parse(raw);
+  }
+
+  public saveStockRecords(records: StockRecord[]): void {
+    localStorage.setItem(STORAGE_KEYS.STOCK_RECORDS, JSON.stringify(records));
   }
 
   public getLastSync(): string {

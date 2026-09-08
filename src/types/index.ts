@@ -125,6 +125,31 @@ export interface OTIFRecord {
   category: 'Mécanique' | 'Électronique' | 'Fonderie' | 'Usinage' | 'Câblage';
 }
 
+export type StockStatus = 'Surstock' | 'Optimal' | 'Alerte Mini' | 'Rupture Imminente';
+
+export interface StockRecord {
+  id: string;
+  reference: string;
+  designation: string;
+  materialPlanner: string; // e.g. "Thomas Laurent", "Sophie Bernard", "Marc Dubois", "Camille Robert", "Alexandre Petit"
+  supplier: string; // e.g. "Knorr-Bremse Rail Systems", "Faiveley Transport (Wabtec)", ...
+  project: string; // e.g. "Alstom Coradia Polyvalent", ...
+  unitCost: number; // in €
+  onHandQuantity: number; // Stock physique disponible en pcs
+  reservedQuantity: number; // Stock réservé en pcs
+  availableQuantity: number; // Stock net disponible (onHand - reserved)
+  safetyStock: number; // Stock de sécurité mini en pcs
+  maxStock: number; // Stock maximum cible en pcs
+  stockValue: number; // onHandQuantity * unitCost (€)
+  dailyConsumptionRate: number; // Consommation moyenne journalière (pcs/jour)
+  coverageDays: number; // Couverture en jours (availableQuantity / dailyConsumptionRate)
+  dormantStockQty: number; // Stock dormant (> 90 jours sans mouvement)
+  dormantStockValue: number; // dormantStockQty * unitCost (€)
+  stockStatus: StockStatus;
+  lastMovementDate: string; // YYYY-MM-DD
+  storageLocation: string; // e.g. "Magasin A-12", "Zone B-04"
+}
+
 export interface DataQualityIssue {
   id: string;
   folderKey: FolderKey;

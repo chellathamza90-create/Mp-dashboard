@@ -1,4 +1,4 @@
-import { PublicFileMetadata, MSPRecord, MDPRecord, PFRecord, OTIFRecord, DataQualityReport, FolderConfig } from '../types';
+import { PublicFileMetadata, MSPRecord, MDPRecord, PFRecord, OTIFRecord, StockRecord, DataQualityReport, FolderConfig } from '../types';
 import { evaluateMrpException } from '../utils/mrpExceptions';
 
 export const KNOWN_SUPPLIERS = [
@@ -12,6 +12,14 @@ export const KNOWN_SUPPLIERS = [
   'Schaltbau Railway Products',
   'Lucchini RS Wheelsets',
   'Stadler Rail Components'
+];
+
+export const MATERIAL_PLANNERS = [
+  { name: 'Thomas Laurent', code: 'MP-TL', role: 'Lead Material Planner', email: 'thomas.laurent@alstom-rail.com' },
+  { name: 'Sophie Bernard', code: 'MP-SB', role: 'Senior Material Planner', email: 'sophie.bernard@alstom-rail.com' },
+  { name: 'Marc Dubois', code: 'MP-MD', role: 'Material Planner Freinage & Bogies', email: 'marc.dubois@alstom-rail.com' },
+  { name: 'Camille Robert', code: 'MP-CR', role: 'Material Planner Électronique & Traction', email: 'camille.robert@alstom-rail.com' },
+  { name: 'Alexandre Petit', code: 'MP-AP', role: 'Material Planner Intérieurs & Aménagements', email: 'alexandre.petit@alstom-rail.com' }
 ];
 
 export const PROJECTS = [
@@ -501,4 +509,107 @@ export function getInitialQualityReport(filesCount: number, linesCount: number):
       }
     ]
   };
+}
+
+/**
+ * Generates rich railway stock records with Material Planners, Suppliers, and Projects
+ */
+export function generateInitialStock(): StockRecord[] {
+  const stockItems: StockRecord[] = [];
+  
+  const partTemplates = [
+    { ref: 'REF-VALV-1204', desc: 'Electrovanne de freinage d\'urgence', cost: 1250, plannerIdx: 0, supplierIdx: 0, projIdx: 0, baseQty: 120, safety: 40, max: 150, daily: 3.5, location: 'Magasin A-04' },
+    { ref: 'REF-DISC-3301', desc: 'Disque de frein ventilé acier TGV', cost: 2400, plannerIdx: 2, supplierIdx: 0, projIdx: 2, baseQty: 85, safety: 30, max: 100, daily: 2.1, location: 'Zone B-12' },
+    { ref: 'REF-PANT-8820', desc: 'Archet de pantographe carbone 25kV', cost: 3800, plannerIdx: 1, supplierIdx: 1, projIdx: 0, baseQty: 42, safety: 15, max: 50, daily: 0.9, location: 'Magasin A-08' },
+    { ref: 'REF-DOOR-5541', desc: 'Actionneur pneumatique porte passager', cost: 1850, plannerIdx: 1, supplierIdx: 1, projIdx: 1, baseQty: 95, safety: 35, max: 120, daily: 2.8, location: 'Zone C-01' },
+    { ref: 'REF-INVT-9902', desc: 'Module onduleur de traction IGBT 3.3kV', cost: 14500, plannerIdx: 3, supplierIdx: 2, projIdx: 2, baseQty: 18, safety: 8, max: 25, daily: 0.4, location: 'Salle Blanche E-02' },
+    { ref: 'REF-MOTR-4410', desc: 'Moteur asynchrone fermé bogie 450kW', cost: 22000, plannerIdx: 3, supplierIdx: 2, projIdx: 3, baseQty: 12, safety: 6, max: 16, daily: 0.25, location: 'Zone Lourde H-01' },
+    { ref: 'REF-BEAR-7730', desc: 'Boîte d\'essieu & roulement à rouleaux coniques', cost: 890, plannerIdx: 2, supplierIdx: 3, projIdx: 0, baseQty: 340, safety: 100, max: 400, daily: 8.5, location: 'Magasin B-03' },
+    { ref: 'REF-AXLE-6621', desc: 'Essieu monté ferroviaire forgé 22.5t', cost: 6200, plannerIdx: 2, supplierIdx: 8, projIdx: 4, baseQty: 24, safety: 12, max: 35, daily: 0.6, location: 'Zone Extérieure Bogie' },
+    { ref: 'REF-CBKR-3105', desc: 'Disjoncteur ultra-rapide continu DC 1500V', cost: 7800, plannerIdx: 3, supplierIdx: 4, projIdx: 1, baseQty: 16, safety: 8, max: 22, daily: 0.35, location: 'Salle Blanche E-04' },
+    { ref: 'REF-TRAN-5520', desc: 'Transformateur principal monophasé 25kV', cost: 38000, plannerIdx: 3, supplierIdx: 4, projIdx: 2, baseQty: 6, safety: 3, max: 8, daily: 0.1, location: 'Zone Lourde H-03' },
+    { ref: 'REF-COUPL-911', desc: 'Attelage automatique Scharfenberg Type 10', cost: 16500, plannerIdx: 0, supplierIdx: 5, projIdx: 3, baseQty: 14, safety: 6, max: 20, daily: 0.3, location: 'Zone H-05' },
+    { ref: 'REF-GEAR-4200', desc: 'Réducteur de vitesse à engrenages hélicoïdaux', cost: 11200, plannerIdx: 2, supplierIdx: 5, projIdx: 4, baseQty: 20, safety: 8, max: 28, daily: 0.45, location: 'Magasin C-07' },
+    { ref: 'REF-SEAT-1002', desc: 'Fauteuil passager 1ère classe cuir inclinable', cost: 920, plannerIdx: 4, supplierIdx: 6, projIdx: 2, baseQty: 220, safety: 60, max: 300, daily: 6.0, location: 'Magasin D-01' },
+    { ref: 'REF-SEAT-2005', desc: 'Banquette modulaire 2nde classe antivandalisme', cost: 640, plannerIdx: 4, supplierIdx: 6, projIdx: 1, baseQty: 410, safety: 120, max: 500, daily: 11.5, location: 'Magasin D-02' },
+    { ref: 'REF-RELAY-110', desc: 'Relais de sécurité ferroviaire SIL4', cost: 420, plannerIdx: 3, supplierIdx: 7, projIdx: 3, baseQty: 580, safety: 150, max: 700, daily: 14.0, location: 'Magasin Élec A-01' },
+    { ref: 'REF-SWTCH-890', desc: 'Manipulateur de traction pupitre de conduite', cost: 3100, plannerIdx: 1, supplierIdx: 7, projIdx: 4, baseIdx: 28, safety: 10, max: 35, daily: 0.7, location: 'Salle Blanche E-01' },
+    { ref: 'REF-WHEEL-501', desc: 'Roue monobloc acier traité thermique R8T', cost: 1650, plannerIdx: 2, supplierIdx: 8, projIdx: 0, baseQty: 160, safety: 50, max: 220, daily: 3.8, location: 'Zone Parc Roues' },
+    { ref: 'REF-HVAC-9002', desc: 'Centrale de climatisation toiture réversible 45kW', cost: 26500, plannerIdx: 4, supplierIdx: 9, projIdx: 0, baseQty: 10, safety: 4, max: 14, daily: 0.2, location: 'Zone Lourde H-02' },
+    { ref: 'REF-TCMS-1040', desc: 'Calculateur centralisé réseau train (TCMS)', cost: 18900, plannerIdx: 1, supplierIdx: 9, projIdx: 2, baseQty: 15, safety: 6, max: 20, daily: 0.3, location: 'Salle Blanche E-03' },
+    { ref: 'REF-SENS-3022', desc: 'Capteur de vitesse & température bogie', cost: 340, plannerIdx: 0, supplierIdx: 3, projIdx: 3, baseQty: 480, safety: 120, max: 600, daily: 12.0, location: 'Magasin Élec A-03' },
+    { ref: 'REF-LIGHT-770', desc: 'Projecteur frontal LED bi-mode longue portée', cost: 1450, plannerIdx: 4, supplierIdx: 7, projIdx: 4, baseQty: 65, safety: 20, max: 80, daily: 1.5, location: 'Magasin C-02' },
+    { ref: 'REF-SUSP-4401', desc: 'Ressort hélicoïdal suspension primaire acier', cost: 780, plannerIdx: 2, supplierIdx: 8, projIdx: 0, baseQty: 190, safety: 60, max: 240, daily: 4.2, location: 'Magasin B-05' },
+    { ref: 'REF-COMP-6610', desc: 'Compresseur d\'air principal à vis sans huile', cost: 19500, plannerIdx: 0, supplierIdx: 0, projIdx: 1, baseQty: 8, safety: 4, max: 12, daily: 0.18, location: 'Zone H-04' },
+    { ref: 'REF-PUMP-2204', desc: 'Pompe de refroidissement transformateur', cost: 4600, plannerIdx: 3, supplierIdx: 2, projIdx: 2, baseQty: 22, safety: 8, max: 30, daily: 0.5, location: 'Magasin C-04' },
+    { ref: 'REF-BATT-8800', desc: 'Coffre batterie secours Ni-Cd 110V 240Ah', cost: 12400, plannerIdx: 1, supplierIdx: 4, projIdx: 0, baseQty: 14, safety: 5, max: 18, daily: 0.28, location: 'Zone B-08' }
+  ];
+
+  partTemplates.forEach((t, index) => {
+    const planner = MATERIAL_PLANNERS[t.plannerIdx % MATERIAL_PLANNERS.length].name;
+    const supplier = KNOWN_SUPPLIERS[t.supplierIdx % KNOWN_SUPPLIERS.length];
+    const project = PROJECTS[t.projIdx % PROJECTS.length];
+
+    // Variations in stock status
+    let onHand = t.baseQty;
+    let reserved = Math.floor(onHand * 0.25);
+    let dormantQty = 0;
+
+    // Introduce specific status cases for rich analytical dashboard
+    if (index % 6 === 1) {
+      // Surstock
+      onHand = Math.round(t.max * 1.6);
+      dormantQty = Math.round(onHand * 0.35);
+    } else if (index % 6 === 3) {
+      // Alerte Mini
+      onHand = Math.round(t.safety * 0.75);
+      reserved = Math.round(onHand * 0.4);
+    } else if (index % 12 === 5) {
+      // Rupture Imminente
+      onHand = Math.round(t.safety * 0.2);
+      reserved = onHand;
+    }
+
+    const available = Math.max(0, onHand - reserved);
+    const stockVal = onHand * t.cost;
+    const dormantVal = dormantQty * t.cost;
+    const coverage = t.daily > 0 ? Math.round(available / t.daily) : 45;
+
+    let status: 'Surstock' | 'Optimal' | 'Alerte Mini' | 'Rupture Imminente' = 'Optimal';
+    if (available <= 0 || coverage < 7) {
+      status = 'Rupture Imminente';
+    } else if (onHand < t.safety || coverage < 15) {
+      status = 'Alerte Mini';
+    } else if (onHand > t.max || coverage > 75) {
+      status = 'Surstock';
+    }
+
+    const dateOffsetDays = index * 3 + 2;
+    const movDate = new Date(2026, 7, 28 - (dateOffsetDays % 25)).toISOString().split('T')[0];
+
+    stockItems.push({
+      id: `STK-${1000 + index}`,
+      reference: t.ref,
+      designation: t.desc,
+      materialPlanner: planner,
+      supplier: supplier,
+      project: project,
+      unitCost: t.cost,
+      onHandQuantity: onHand,
+      reservedQuantity: reserved,
+      availableQuantity: available,
+      safetyStock: t.safety,
+      maxStock: t.max,
+      stockValue: stockVal,
+      dailyConsumptionRate: t.daily,
+      coverageDays: coverage,
+      dormantStockQty: dormantQty,
+      dormantStockValue: dormantVal,
+      stockStatus: status,
+      lastMovementDate: movDate,
+      storageLocation: t.location
+    });
+  });
+
+  return stockItems;
 }

@@ -13,6 +13,7 @@ import {
   MDPRecord, 
   PFRecord, 
   OTIFRecord, 
+  StockRecord,
   PeriodFilter, 
   DataQualityReport 
 } from './types';
@@ -26,8 +27,9 @@ import { ControlTowerView } from './views/ControlTowerView';
 import { MspView } from './views/MspView';
 import { MdpView } from './views/MdpView';
 import { VariationPlanningView } from './views/VariationPlanningView';
-import { PfView } from './views/PfView';
 import { OtifView } from './views/OtifView';
+import { StockView } from './views/StockView';
+import { PfView } from './views/PfView';
 import { DataSourcesView } from './views/DataSourcesView';
 
 export default function App() {
@@ -45,6 +47,7 @@ export default function App() {
   const [mdpRecords, setMdpRecords] = useState<MDPRecord[]>(() => storage.getMDPRecords());
   const [pfRecords, setPfRecords] = useState<PFRecord[]>(() => storage.getPFRecords());
   const [otifRecords, setOtifRecords] = useState<OTIFRecord[]>(() => storage.getOTIFRecords());
+  const [stockRecords, setStockRecords] = useState<StockRecord[]>(() => storage.getStockRecords());
   const [lastSyncDate, setLastSyncDate] = useState<string>(() => storage.getLastSync());
   const [qualityReport, setQualityReport] = useState<DataQualityReport>(() => storage.getQualityReport());
 
@@ -65,8 +68,18 @@ export default function App() {
     setMdpRecords(storage.getMDPRecords());
     setPfRecords(storage.getPFRecords());
     setOtifRecords(storage.getOTIFRecords());
+    setStockRecords(storage.getStockRecords());
     setLastSyncDate(storage.getLastSync());
     setQualityReport(storage.getQualityReport());
+  }, [storage]);
+
+  // Handler for updating stock record
+  const handleUpdateStockRecord = useCallback((updated: StockRecord) => {
+    setStockRecords((prev) => {
+      const next = prev.map((r) => (r.id === updated.id ? updated : r));
+      storage.saveStockRecords(next);
+      return next;
+    });
   }, [storage]);
 
   // Execute Auto Data Sync (Requirement 37 & 38)
@@ -138,6 +151,7 @@ export default function App() {
             mdpRecords={mdpRecords}
             pfRecords={pfRecords}
             otifRecords={otifRecords}
+            stockRecords={stockRecords}
             folders={folders}
             selectedPeriod={selectedPeriod}
             onNavigateTab={(tab) => setCurrentTab(tab)}
@@ -169,17 +183,24 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'pf' && (
-          <PfView
-            records={pfRecords}
+        {currentTab === 'otif' && (
+          <OtifView
+            records={otifRecords}
             files={files}
             onOpenFolderModal={() => setIsFolderModalOpen(true)}
           />
         )}
 
-        {currentTab === 'otif' && (
-          <OtifView
-            records={otifRecords}
+        {currentTab === 'stock' && (
+          <StockView
+            stockRecords={stockRecords}
+            onUpdateStockRecord={handleUpdateStockRecord}
+          />
+        )}
+
+        {currentTab === 'pf' && (
+          <PfView
+            records={pfRecords}
             files={files}
             onOpenFolderModal={() => setIsFolderModalOpen(true)}
           />

@@ -8,7 +8,8 @@ import {
   Layers,
   AlertTriangle,
   Clock,
-  BarChart2
+  BarChart2,
+  Boxes
 } from 'lucide-react';
 import { PeriodFilter } from '../types';
 
@@ -56,7 +57,8 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'mdp', label: '02. MDP (Carnet & Exceptions)', icon: Clock },
     { id: 'variation', label: '03. Variation Planning (Waterfall)', icon: BarChart2 },
     { id: 'otif', label: '04. OTIF & Moyenne 3 Mois (Average)', icon: ShieldCheck },
-    { id: 'pf', label: '05. Produits Finis', icon: Database },
+    { id: 'stock', label: '05. Suivi de Stock', icon: Boxes },
+    { id: 'pf', label: '06. Produits Finis', icon: Database },
     { id: 'sources', label: 'Data Sources & Dossiers', icon: FolderOpen }
   ];
 
